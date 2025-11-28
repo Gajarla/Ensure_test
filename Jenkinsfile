@@ -13,21 +13,19 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                script {
-                    // Pull everything
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '**']],
-                        userRemoteConfigs: [[url: REPO_URL]]
-                    ])
+       stage('Checkout Code') {
+    steps {
+        script {
+            checkout scm
 
-                    CURRENT_BRANCH = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
-                    echo "Triggered by branch: ${CURRENT_BRANCH}"
-                }
-            }
+            CURRENT_BRANCH = env.GIT_BRANCH.replace("origin/", "").trim()
+
+            echo "Triggered by branch: ${CURRENT_BRANCH}"
         }
+    }
+}
+
+        
 
         stage('Deploy Backend') {
             when { expression { CURRENT_BRANCH == "backend" || CURRENT_BRANCH == "main" } }

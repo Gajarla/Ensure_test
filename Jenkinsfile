@@ -58,24 +58,24 @@ EOF
         }
 
         stage('Deploy Frontend') {
-            when { expression { CURRENT_BRANCH == "Frontend" || CURRENT_BRANCH == "main" } }
-            steps {
-                script {
-                    echo "Deploying Frontend..."
+    when { expression { CURRENT_BRANCH == "Frontend" || CURRENT_BRANCH == "main" } }
+    steps {
+        script {
+            echo "Deploying Frontend..."
 
-                    sh """
-                    cd frontend
-                    npm install
-                    npm run build
+            sh """
+            npm install
+            npm run build
 
-                    sudo rm -rf ${FRONTEND_DIR}/*
-                    sudo cp -r build/* ${FRONTEND_DIR}/
+            sudo rm -rf ${FRONTEND_DIR}/*
+            sudo cp -r build/* ${FRONTEND_DIR}/
 
-                    sudo systemctl restart apache2 || sudo systemctl restart httpd
-                    """
-                }
-            }
+            sudo systemctl restart apache2 || sudo systemctl restart httpd
+            """
         }
+    }
+}
+
     }
 
     post {

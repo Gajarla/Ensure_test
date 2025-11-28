@@ -1,0 +1,8 @@
+const STATUS = {
+  ACTIVE: 'ACTIVE',
+  CLOSED: 'CLOSED',
+  ARCHIVED: 'ARCHIVED',
+  UNARCHIVED: 'UNARCHIVED'
+};
+
+export default STATUS;

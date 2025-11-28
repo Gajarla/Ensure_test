@@ -1,0 +1,17 @@
+.slick-slider {
+  height: 200px;
+  width: 400px;
+}
+
+.slick-slider img {
+  z-index: 2;
+  cursor: 'pointer';
+  height: 200px;
+  width: 400px;
+  object-fit: contain;
+  object-position: 'center';
+}
+
+.error {
+  color: red;
+}

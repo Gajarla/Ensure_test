@@ -5,40 +5,38 @@ pipeline {
         BACKEND_DIR = "/home/t_admin/Backend"
         FRONTEND_DIR = "/var/www/html"
         REPO_URL = "https://github.com/Gajarla/Ensure_test.git"
+        GIT_CRED = "github-token"
     }
 
     triggers {
-        githubPush()   // 🔥 Auto trigger on GitHub push
+        githubPush()    // Auto build on GitHub push
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                script {
-                    // Pull everything
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '**']],
-                        userRemoteConfigs: [[url: REPO_URL]]
-                    ])
-
-                    CURRENT_BRANCH = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
-                    echo "Triggered by branch: ${CURRENT_BRANCH}"
-                }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main'], [name: '*/backend'], [name: '*/Frontend']],
+                    userRemoteConfigs: [[url: REPO_URL, credentialsId: GIT_CRED]]
+                ])
             }
         }
 
+        /* ────────────────────────────────────────────
+           BACKEND DEPLOYMENT
+           ──────────────────────────────────────────── */
         stage('Deploy Backend') {
-            when { expression { CURRENT_BRANCH == "backend" || CURRENT_BRANCH == "main" } }
             steps {
                 script {
-                    echo "Deploying Backend..."
+                    echo "🚀 Deploying Backend..."
 
                     sh """
+                    echo "Copy Backend files..."
                     sudo rm -rf ${BACKEND_DIR}
                     sudo mkdir -p ${BACKEND_DIR}
-                    sudo cp -r backend/* ${BACKEND_DIR}/
+                    sudo cp -r Backend/* ${BACKEND_DIR}/
 
                     cd ${BACKEND_DIR}
                     sudo npm install
@@ -48,25 +46,28 @@ APP_ENV=demo
 MONGOURI=mongodb://teadmin:sailoteadm1n@16.112.109.41:27017/tedb
 APP_URL=http://app.testensure.com
 JENKINS_HOST=http://16.112.109.41:8080
-JENKINS_AUTH=Sunil kumar:1159b1a251795c8bd45df729f363fd08a4
 NODE_TLS_REJECT_UNAUTHORIZED="0"
 EOF
 
                     sudo forever stopall || true
                     sudo forever start server.js
                     """
+
+                    echo "✔ Backend deployed successfully."
                 }
             }
         }
 
+        /* ────────────────────────────────────────────
+           FRONTEND DEPLOYMENT
+           ──────────────────────────────────────────── */
         stage('Deploy Frontend') {
-            when { expression { CURRENT_BRANCH == "Frontend" || CURRENT_BRANCH == "main" } }
             steps {
                 script {
-                    echo "Deploying Frontend..."
+                    echo "🚀 Deploying Frontend..."
 
                     sh """
-                    cd frontend
+                    cd Frontend
                     npm install
                     npm run build
 
@@ -75,17 +76,15 @@ EOF
 
                     sudo systemctl restart apache2 || sudo systemctl restart httpd
                     """
+
+                    echo "✔ Frontend deployed successfully."
                 }
             }
         }
     }
 
     post {
-        success {
-            echo "CI/CD Successfully Completed!"
-        }
-        failure {
-            echo "CI/CD Failed!"
-        }
+        success { echo "🎉 Full Deployment Completed Successfully!" }
+        failure { echo "❌ Deployment Failed!" }
     }
 }
